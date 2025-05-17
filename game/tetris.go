@@ -436,7 +436,7 @@ func (t *Tetris) printGrid() {
 			if cell > 0 {
 				style := lipgloss.NewStyle().
 					Foreground(lipgloss.Color(t.colors[cell]))
-				fmt.Printf(style.Render("x"))
+				fmt.Printf(style.Render("■"))
 			} else {
 				fmt.Printf(" ")
 			}
