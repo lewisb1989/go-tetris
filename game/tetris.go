@@ -2,18 +2,11 @@ package game
 
 import (
 	"fmt"
+	"github.com/charmbracelet/lipgloss"
 	"math/rand"
 	"sync"
 	"time"
 )
-
-var Characters = []string{
-	"a", "b", "c", "d", "e", "f",
-	"g", "h", "i", "j", "k", "l",
-	"m", "n", "o", "p", "q", "r",
-	"s", "t", "u", "v", "w", "x",
-	"y", "z",
-}
 
 var Shapes = [][][][]int{
 	{
@@ -216,6 +209,7 @@ type Tetris struct {
 	scores      []int
 	height      int
 	width       int
+	colors      map[int]string
 	activePiece *Piece
 	archive     []*Piece
 	grid        *Grid
@@ -235,6 +229,7 @@ func StartNewGame(tetris *Tetris) {
 	tetris.activeScore = 0
 	tetris.grid = NewGrid(layout)
 	tetris.archive = make([]*Piece, 0)
+	tetris.colors = make(map[int]string)
 	tetris.newActivePiece()
 }
 
@@ -255,6 +250,7 @@ func NewTetris(
 		archive: make([]*Piece, 0),
 		shapes:  Shapes,
 		scores:  make([]int, 0),
+		colors:  make(map[int]string),
 	}
 	StartNewGame(tetris)
 	go func() {
@@ -281,6 +277,21 @@ func (t *Tetris) gameOver() {
 func (t *Tetris) newActivePiece() {
 	id := len(t.archive) + 1
 	index := rand.Intn(len(t.shapes) - 1)
+	if index == 0 {
+		t.colors[id] = "#ffff00"
+	} else if index == 1 {
+		t.colors[id] = "#00ffff"
+	} else if index == 2 {
+		t.colors[id] = "#BF40BF"
+	} else if index == 3 {
+		t.colors[id] = "#00ff00"
+	} else if index == 4 {
+		t.colors[id] = "#ff0000"
+	} else if index == 5 {
+		t.colors[id] = "#0096FF"
+	} else if index == 6 {
+		t.colors[id] = "#ff7ff0"
+	}
 	rotation := rand.Intn(3)
 	shape := t.shapes[index][rotation]
 	x := rand.Intn(len(t.grid.layout[0]) - len(shape[0]) - 1)
@@ -420,19 +431,15 @@ func (t *Tetris) printGrid() {
 	grid := NewGrid(layout)
 	t.addPieceToGrid(grid, t.activePiece)
 	for _, row := range layout {
-		var charRow []string
-		for _, cell := range row {
-			var char string
-			if cell == 0 {
-				char = " "
-			} else {
-				char = Characters[(cell-1)%len(Characters)]
-			}
-			charRow = append(charRow, char)
-		}
 		fmt.Printf("[ ")
-		for _, char := range charRow {
-			fmt.Printf(char)
+		for _, cell := range row {
+			if cell > 0 {
+				style := lipgloss.NewStyle().
+					Foreground(lipgloss.Color(t.colors[cell]))
+				fmt.Printf(style.Render("x"))
+			} else {
+				fmt.Printf(" ")
+			}
 			fmt.Printf(" ")
 		}
 		fmt.Printf("]\n")
