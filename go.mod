@@ -1,4 +1,4 @@
-module tetris2
+module tetris
 
 go 1.23.0
 

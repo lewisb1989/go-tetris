@@ -1,4 +1,4 @@
-package tetris
+package game
 
 import (
 	"fmt"

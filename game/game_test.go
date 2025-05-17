@@ -1,4 +1,4 @@
-package tetris
+package game
 
 import (
 	"github.com/stretchr/testify/assert"
