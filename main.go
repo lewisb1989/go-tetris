@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/hajimehoshi/go-mp3"
 	"github.com/hajimehoshi/oto"
 	term "github.com/nsf/termbox-go"
@@ -26,7 +25,6 @@ func playAudio() {
 			panic(err)
 		}
 		p := c.NewPlayer()
-		fmt.Println("playing")
 		if _, err := io.Copy(p, d); err != nil {
 			panic(err)
 		}

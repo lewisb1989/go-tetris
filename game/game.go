@@ -224,6 +224,7 @@ type Tetris struct {
 	grid        *Grid
 	shapes      [][][][]int
 	lock        sync.RWMutex
+	printLock   sync.RWMutex
 }
 
 func StartNewGame(tetris *Tetris) {
@@ -241,7 +242,11 @@ func StartNewGame(tetris *Tetris) {
 	tetris.newActivePiece()
 }
 
-func NewTetris(width int, height int, gameSpeed time.Duration) *Tetris {
+func NewTetris(
+	width int,
+	height int,
+	gameSpeed time.Duration,
+) *Tetris {
 	if width < 6 {
 		panic("minimum width is 6")
 	}
@@ -261,6 +266,11 @@ func NewTetris(width int, height int, gameSpeed time.Duration) *Tetris {
 			tetris.MoveDown()
 		}
 	}()
+	//go func() {
+	//	for range time.NewTicker(time.Millisecond * 50).C {
+	//		tetris.printGrid()
+	//	}
+	//}()
 	return tetris
 }
 
@@ -389,9 +399,7 @@ func (t *Tetris) UpdateGrid() {
 }
 
 func (t *Tetris) printGrid() {
-	// FIXME: Make this work in the console with static logging
-	fmt.Println(" ")
-	fmt.Println("TETRIS")
+	fmt.Print("\033[H\033[2J")
 	hr := "*"
 	for i := 0; i < (t.width * 2); i++ {
 		hr = hr + "*"
@@ -420,7 +428,7 @@ func (t *Tetris) printGrid() {
 		fmt.Println(charRow)
 	}
 	fmt.Println(hr)
-	fmt.Printf("Score: %d\n", t.activeScore)
+	fmt.Println(fmt.Sprintf("Score: %d", t.activeScore))
 }
 
 func (t *Tetris) isCollisionDetected(x int, y int, shape [][]int, id int) bool {
