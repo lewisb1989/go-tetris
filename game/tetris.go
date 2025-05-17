@@ -149,6 +149,16 @@ var Shapes = [][][][]int{
 	},
 }
 
+var Colors = map[int]string{
+	0: "#ffff00",
+	1: "#00ffff",
+	2: "#BF40BF",
+	3: "#00ff00",
+	4: "#ff0000",
+	5: "#0096FF",
+	6: "#ff7ff0",
+}
+
 func setShapeId(shape [][]int, id int) [][]int {
 	for i := range shape {
 		for j := range shape[i] {
@@ -277,21 +287,7 @@ func (t *Tetris) gameOver() {
 func (t *Tetris) newActivePiece() {
 	id := len(t.archive) + 1
 	index := rand.Intn(len(t.shapes) - 1)
-	if index == 0 {
-		t.colors[id] = "#ffff00"
-	} else if index == 1 {
-		t.colors[id] = "#00ffff"
-	} else if index == 2 {
-		t.colors[id] = "#BF40BF"
-	} else if index == 3 {
-		t.colors[id] = "#00ff00"
-	} else if index == 4 {
-		t.colors[id] = "#ff0000"
-	} else if index == 5 {
-		t.colors[id] = "#0096FF"
-	} else if index == 6 {
-		t.colors[id] = "#ff7ff0"
-	}
+	t.colors[id] = Colors[index]
 	rotation := rand.Intn(3)
 	shape := t.shapes[index][rotation]
 	x := rand.Intn(len(t.grid.layout[0]) - len(shape[0]) - 1)
@@ -434,8 +430,7 @@ func (t *Tetris) printGrid() {
 		fmt.Printf("[ ")
 		for _, cell := range row {
 			if cell > 0 {
-				style := lipgloss.NewStyle().
-					Foreground(lipgloss.Color(t.colors[cell]))
+				style := lipgloss.NewStyle().Foreground(lipgloss.Color(t.colors[cell])).Bold(true)
 				fmt.Printf(style.Render("■"))
 			} else {
 				fmt.Printf(" ")
