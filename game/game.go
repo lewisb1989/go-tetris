@@ -228,7 +228,6 @@ type Tetris struct {
 	grid        *Grid
 	shapes      [][][][]int
 	lock        sync.RWMutex
-	printLock   sync.RWMutex
 }
 
 func StartNewGame(tetris *Tetris) {

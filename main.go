@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func playAudio() {
+func loopThemeTune() {
 	for {
 		f, err := os.Open("tetris.mp3")
 		if err != nil {
@@ -35,7 +35,7 @@ func playAudio() {
 }
 
 func main() {
-	go playAudio()
+	go loopThemeTune()
 	err := term.Init()
 	if err != nil {
 		panic(err)
