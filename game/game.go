@@ -3,7 +3,11 @@ package game
 import (
 	"fmt"
 	"math/rand"
+	"sync"
+	"time"
 )
+
+var Characters = []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 
 var Shapes = [][][][]int{
 	{
@@ -146,6 +150,16 @@ var Shapes = [][][][]int{
 	},
 }
 
+func setShapeId(piece *Piece, id int) {
+	for i := range piece.shape {
+		for j := range piece.shape[i] {
+			if piece.shape[i][j] > 0 {
+				piece.shape[i][j] = id
+			}
+		}
+	}
+}
+
 type Grid struct {
 	layout [][]int
 }
@@ -174,6 +188,7 @@ func NewPiece(id int, index int, rotation int, shape [][]int) *Piece {
 		rotation: rotation,
 		shape:    shape,
 	}
+	setShapeId(piece, id)
 	for i := range piece.shape {
 		for j := range piece.shape[i] {
 			if piece.shape[i][j] > 0 {
@@ -201,6 +216,7 @@ type Tetris struct {
 	archive     []*Piece
 	grid        *Grid
 	shapes      [][][][]int
+	lock        sync.RWMutex
 }
 
 func StartNewGame(tetris *Tetris) {
@@ -215,10 +231,10 @@ func StartNewGame(tetris *Tetris) {
 	tetris.activeScore = 0
 	tetris.grid = NewGrid(layout)
 	tetris.archive = make([]*Piece, 0)
-	tetris.NewActivePiece()
+	tetris.newActivePiece()
 }
 
-func NewTetris(width int, height int) *Tetris {
+func NewTetris(width int, height int, gameSpeed time.Duration) *Tetris {
 	if width < 6 {
 		panic("minimum width is 6")
 	}
@@ -233,10 +249,15 @@ func NewTetris(width int, height int) *Tetris {
 		scores:  make([]int, 0),
 	}
 	StartNewGame(tetris)
+	go func() {
+		for range time.NewTicker(gameSpeed).C {
+			tetris.MoveDown()
+		}
+	}()
 	return tetris
 }
 
-func (t *Tetris) NewActivePiece() {
+func (t *Tetris) newActivePiece() {
 	id := len(t.archive) + 1
 	index := rand.Intn(len(t.shapes) - 1)
 	rotation := rand.Intn(3)
@@ -244,12 +265,12 @@ func (t *Tetris) NewActivePiece() {
 	x := rand.Intn(len(t.grid.layout[0]) - len(shape[0]) - 1)
 	t.activePiece = NewPiece(id, index, rotation, shape)
 	t.activePiece.x = x
-	if t.CollisionDetection(x, 0, t.activePiece.Width(), t.activePiece.Height()) {
+	if t.collisionDetection(x, 0, t.activePiece.Width(), t.activePiece.Height()) {
 		StartNewGame(t)
 	}
 }
 
-func (t *Tetris) ClearCompletedRows() {
+func (t *Tetris) clearCompletedRows() {
 	var newLayout [][]int
 	for _, row := range t.grid.layout {
 		zeroes := 0
@@ -275,46 +296,52 @@ func (t *Tetris) ClearCompletedRows() {
 }
 
 func (t *Tetris) RotateClockwise() {
+	t.lock.Lock()
+	defer t.lock.Unlock()
 	t.activePiece.rotation += 1
 	if t.activePiece.rotation > 3 {
 		t.activePiece.rotation = 0
 	}
-	t.activePiece.shape = t.shapes[t.activePiece.index][t.activePiece.rotation]
-}
-
-func (t *Tetris) RotateCounterClockwise() {
-	t.activePiece.rotation -= 1
-	if t.activePiece.rotation < 0 {
-		t.activePiece.rotation = 3
-	}
-	t.activePiece.shape = t.shapes[t.activePiece.index][t.activePiece.rotation]
+	newShape := t.shapes[t.activePiece.index][t.activePiece.rotation]
+	t.activePiece.shape = newShape
+	setShapeId(t.activePiece, t.activePiece.id)
+	t.printGrid()
 }
 
 func (t *Tetris) MoveDown() {
-	if t.CollisionDetection(t.activePiece.x, t.activePiece.y+1, t.activePiece.Width(), t.activePiece.Height()) {
+	t.lock.Lock()
+	defer t.lock.Unlock()
+	if t.collisionDetection(t.activePiece.x, t.activePiece.y+1, t.activePiece.Width(), t.activePiece.Height()) {
 		t.UpdateGrid()
-		t.ClearCompletedRows()
-		t.NewActivePiece()
+		t.clearCompletedRows()
+		t.newActivePiece()
 	} else {
 		t.activePiece.y += 1
 	}
+	t.printGrid()
 }
 
 func (t *Tetris) MoveLeft() {
+	t.lock.Lock()
+	defer t.lock.Unlock()
 	if t.activePiece.x-1 < 0 {
 		return
 	}
 	t.activePiece.x -= 1
+	t.printGrid()
 }
 
 func (t *Tetris) MoveRight() {
+	t.lock.Lock()
+	defer t.lock.Unlock()
 	if t.activePiece.x+1+t.activePiece.Width() > len(t.grid.layout[0]) {
 		return
 	}
 	t.activePiece.x += 1
+	t.printGrid()
 }
 
-func (t *Tetris) AddPieceToGrid(grid *Grid, piece *Piece) {
+func (t *Tetris) addPieceToGrid(grid *Grid, piece *Piece) {
 	row := 0
 	for i := piece.y; i < piece.y+piece.Height(); i++ {
 		col := 0
@@ -329,12 +356,12 @@ func (t *Tetris) AddPieceToGrid(grid *Grid, piece *Piece) {
 }
 
 func (t *Tetris) UpdateGrid() {
-	t.AddPieceToGrid(t.grid, t.activePiece)
-	t.PrintGrid()
+	t.addPieceToGrid(t.grid, t.activePiece)
+	t.printGrid()
 	t.archive = append(t.archive, t.activePiece)
 }
 
-func (t *Tetris) PrintGrid() {
+func (t *Tetris) printGrid() {
 	// FIXME: Make this work in the console with static logging
 	fmt.Println("*** latest grid ***")
 	layout := make([][]int, 0)
@@ -345,13 +372,15 @@ func (t *Tetris) PrintGrid() {
 		}
 	}
 	grid := NewGrid(layout)
-	t.AddPieceToGrid(grid, t.activePiece)
+	t.addPieceToGrid(grid, t.activePiece)
 	for _, row := range layout {
 		var charRow []string
 		for _, cell := range row {
-			char := string(rune('a' - 2 + cell + 1))
+			var char string
 			if cell == 0 {
 				char = " "
+			} else {
+				char = Characters[(cell-1)%26]
 			}
 			charRow = append(charRow, char)
 		}
@@ -359,7 +388,7 @@ func (t *Tetris) PrintGrid() {
 	}
 }
 
-func (t *Tetris) CollisionDetection(x int, y int, width int, height int) bool {
+func (t *Tetris) collisionDetection(x int, y int, width int, height int) bool {
 	if y+height > len(t.grid.layout) {
 		return true
 	}
