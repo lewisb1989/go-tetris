@@ -49,7 +49,7 @@ func main() {
 		if ev.Key == term.KeyEsc {
 			break
 		} else if ev.Key == term.KeyArrowUp {
-			tetris.RotateClockwise()
+			tetris.Rotate()
 		} else if ev.Key == term.KeyArrowDown {
 			tetris.MoveDown()
 		} else if ev.Key == term.KeyArrowLeft {

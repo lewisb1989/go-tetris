@@ -156,14 +156,15 @@ var Shapes = [][][][]int{
 	},
 }
 
-func setShapeId(piece *Piece, id int) {
-	for i := range piece.shape {
-		for j := range piece.shape[i] {
-			if piece.shape[i][j] > 0 {
-				piece.shape[i][j] = id
+func setShapeId(shape [][]int, id int) [][]int {
+	for i := range shape {
+		for j := range shape[i] {
+			if shape[i][j] > 0 {
+				shape[i][j] = id
 			}
 		}
 	}
+	return shape
 }
 
 type Grid struct {
@@ -194,7 +195,7 @@ func NewPiece(id int, index int, rotation int, shape [][]int) *Piece {
 		rotation: rotation,
 		shape:    shape,
 	}
-	setShapeId(piece, id)
+	piece.shape = setShapeId(piece.shape, id)
 	for i := range piece.shape {
 		for j := range piece.shape[i] {
 			if piece.shape[i][j] > 0 {
@@ -301,7 +302,7 @@ func (t *Tetris) clearCompletedRows() {
 	t.grid.layout = newLayout
 }
 
-func (t *Tetris) RotateClockwise() {
+func (t *Tetris) Rotate() {
 	t.lock.Lock()
 	defer t.lock.Unlock()
 	rotation := t.activePiece.rotation + 1
@@ -309,33 +310,22 @@ func (t *Tetris) RotateClockwise() {
 		rotation = 0
 	}
 	newShape := t.shapes[t.activePiece.index][rotation]
+	newShape = setShapeId(newShape, t.activePiece.id)
 	if t.isCollisionDetected(t.activePiece.x, t.activePiece.y, newShape, t.activePiece.id) {
 		if t.activePiece.Height() > t.activePiece.Width() {
 			shift := t.activePiece.Height() - t.activePiece.Width()
 			if t.isCollisionDetected(t.activePiece.x-shift, t.activePiece.y, newShape, t.activePiece.id) {
 				return
 			} else {
-				// TODO: Shift left
 				t.activePiece.x -= shift
 			}
 		} else {
 			return
 		}
-		//} else if t.activePiece.Width() > t.activePiece.Height() {
-		//	shift := t.activePiece.Width() - t.activePiece.Height()
-		//	if t.isCollisionDetected(t.activePiece.x, t.activePiece.y-shift, t.activePiece.Height(), t.activePiece.Width()) {
-		//		return
-		//	} else {
-		//		// TODO: Shift up
-		//		t.activePiece.y -= shift
-		//	}
-		//} else {
-		//	return
-		//}
 	}
 	t.activePiece.rotation = rotation
 	t.activePiece.shape = newShape
-	setShapeId(t.activePiece, t.activePiece.id)
+	t.activePiece.shape = setShapeId(t.activePiece.shape, t.activePiece.id)
 	t.printGrid()
 }
 
@@ -434,6 +424,9 @@ func (t *Tetris) printGrid() {
 }
 
 func (t *Tetris) isCollisionDetected(x int, y int, shape [][]int, id int) bool {
+	if x < 0 {
+		return true
+	}
 	if x+len(shape[0]) > len(t.grid.layout[0]) {
 		return true
 	}
@@ -456,6 +449,5 @@ func (t *Tetris) isCollisionDetected(x int, y int, shape [][]int, id int) bool {
 			}
 		}
 	}
-	// TODO: Check for left and right collisions
 	return false
 }

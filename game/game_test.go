@@ -6,19 +6,85 @@ import (
 	"time"
 )
 
-func TestTetris_RotateClockwise(t *testing.T) {
+func TestTetris_Rotate(t *testing.T) {
 	tetris := NewTetris(6, 10, time.Minute)
 	tetris.activePiece.shape = tetris.shapes[4][0]
 	tetris.activePiece.index = 0
 	tetris.activePiece.rotation = 0
-	tetris.RotateClockwise()
+	tetris.Rotate()
 	assert.Equal(t, tetris.activePiece.shape, tetris.shapes[0][1])
-	tetris.RotateClockwise()
+	tetris.Rotate()
 	assert.Equal(t, tetris.activePiece.shape, tetris.shapes[0][2])
-	tetris.RotateClockwise()
+	tetris.Rotate()
 	assert.Equal(t, tetris.activePiece.shape, tetris.shapes[0][3])
-	tetris.RotateClockwise()
+	tetris.Rotate()
 	assert.Equal(t, tetris.activePiece.shape, tetris.shapes[0][0])
+}
+
+func TestTetris_RotateWithoutShift(t *testing.T) {
+	tetris := NewTetris(6, 10, time.Minute)
+	tetris.activePiece.shape = [][]int{
+		{6},
+		{6},
+		{6},
+		{6},
+	}
+	tetris.activePiece.index = 4
+	tetris.activePiece.rotation = 1
+	tetris.activePiece.x = 5
+	tetris.activePiece.y = 4
+	tetris.grid.layout = [][]int{
+		{0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 4, 4, 0},
+		{0, 0, 0, 4, 4, 0},
+		{0, 0, 0, 3, 3, 0},
+		{0, 0, 0, 3, 3, 0},
+		{0, 0, 0, 2, 2, 0},
+		{0, 0, 0, 2, 2, 0},
+		{0, 0, 0, 1, 1, 0},
+		{0, 0, 0, 1, 1, 0},
+	}
+	tetris.printGrid()
+	tetris.Rotate()
+	assert.Equal(t, tetris.activePiece.shape, [][]int{
+		{6},
+		{6},
+		{6},
+		{6},
+	})
+}
+
+func TestTetris_RotateWithShift(t *testing.T) {
+	tetris := NewTetris(6, 10, time.Minute)
+	tetris.activePiece.shape = [][]int{
+		{6},
+		{6},
+		{6},
+		{6},
+	}
+	tetris.activePiece.id = 6
+	tetris.activePiece.index = 4
+	tetris.activePiece.rotation = 1
+	tetris.activePiece.x = 5
+	tetris.activePiece.y = 4
+	tetris.grid.layout = [][]int{
+		{0, 0, 0, 0, 0, 0},
+		{5, 5, 5, 5, 0, 0},
+		{2, 4, 0, 0, 0, 0},
+		{2, 4, 0, 0, 0, 0},
+		{2, 4, 0, 0, 0, 0},
+		{2, 4, 0, 0, 0, 0},
+		{1, 3, 0, 0, 0, 0},
+		{1, 3, 0, 0, 0, 0},
+		{1, 3, 0, 0, 0, 0},
+		{1, 3, 0, 0, 0, 0},
+	}
+	tetris.printGrid()
+	tetris.Rotate()
+	assert.Equal(t, tetris.activePiece.shape, [][]int{
+		{6, 6, 6, 6},
+	})
 }
 
 func TestTetris_MinGridWidth(t *testing.T) {
