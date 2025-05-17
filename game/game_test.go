@@ -8,7 +8,7 @@ import (
 
 func TestTetris_RotateClockwise(t *testing.T) {
 	tetris := NewTetris(6, 10, time.Minute)
-	tetris.activePiece.shape = tetris.shapes[0][0]
+	tetris.activePiece.shape = tetris.shapes[4][0]
 	tetris.activePiece.index = 0
 	tetris.activePiece.rotation = 0
 	tetris.RotateClockwise()
@@ -94,9 +94,9 @@ func TestTetris_IsCollisionDetected(t *testing.T) {
 	piece.x = 0
 	piece.y = 0
 	tetris.activePiece = piece
-	result := tetris.isCollisionDetected(0, 9, 2, 2)
+	result := tetris.isCollisionDetected(0, 9, tetris.activePiece.shape, tetris.activePiece.id)
 	assert.True(t, result)
-	result = tetris.isCollisionDetected(0, 7, 2, 2)
+	result = tetris.isCollisionDetected(0, 7, tetris.activePiece.shape, tetris.activePiece.id)
 	assert.False(t, result)
 	tetris.grid.layout = [][]int{
 		{0, 0, 0, 0, 0, 0},
@@ -110,11 +110,11 @@ func TestTetris_IsCollisionDetected(t *testing.T) {
 		{1, 1, 0, 0, 0, 0},
 		{1, 1, 0, 0, 0, 0},
 	}
-	result = tetris.isCollisionDetected(1, 5, 2, 2)
+	result = tetris.isCollisionDetected(1, 5, tetris.activePiece.shape, tetris.activePiece.id)
 	assert.True(t, result)
-	result = tetris.isCollisionDetected(1, 4, 2, 2)
+	result = tetris.isCollisionDetected(1, 4, tetris.activePiece.shape, tetris.activePiece.id)
 	assert.False(t, result)
-	result = tetris.isCollisionDetected(2, 5, 2, 2)
+	result = tetris.isCollisionDetected(2, 5, tetris.activePiece.shape, tetris.activePiece.id)
 	assert.False(t, result)
 }
 
