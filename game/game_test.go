@@ -83,7 +83,7 @@ func TestTetris_AddPieceToGrid(t *testing.T) {
 	})
 }
 
-func TestTetris_CollisionDetection(t *testing.T) {
+func TestTetris_IsCollisionDetected(t *testing.T) {
 	tetris := NewTetris(6, 10, time.Minute)
 	shape := tetris.shapes[1][1]
 	assert.Equal(t, shape, [][]int{
@@ -93,9 +93,10 @@ func TestTetris_CollisionDetection(t *testing.T) {
 	piece := NewPiece(1, 1, 1, shape)
 	piece.x = 0
 	piece.y = 0
-	result := tetris.collisionDetection(0, 9, 2, 2)
+	tetris.activePiece = piece
+	result := tetris.isCollisionDetected(0, 9, 2, 2)
 	assert.True(t, result)
-	result = tetris.collisionDetection(0, 7, 2, 2)
+	result = tetris.isCollisionDetected(0, 7, 2, 2)
 	assert.False(t, result)
 	tetris.grid.layout = [][]int{
 		{0, 0, 0, 0, 0, 0},
@@ -109,11 +110,11 @@ func TestTetris_CollisionDetection(t *testing.T) {
 		{1, 1, 0, 0, 0, 0},
 		{1, 1, 0, 0, 0, 0},
 	}
-	result = tetris.collisionDetection(1, 5, 2, 2)
+	result = tetris.isCollisionDetected(1, 5, 2, 2)
 	assert.True(t, result)
-	result = tetris.collisionDetection(1, 4, 2, 2)
+	result = tetris.isCollisionDetected(1, 4, 2, 2)
 	assert.False(t, result)
-	result = tetris.collisionDetection(2, 5, 2, 2)
+	result = tetris.isCollisionDetected(2, 5, 2, 2)
 	assert.False(t, result)
 }
 
