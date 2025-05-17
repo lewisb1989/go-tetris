@@ -200,13 +200,6 @@ func NewPiece(id int, index int, rotation int, shape [][]int) *Piece {
 		shape:    shape,
 	}
 	piece.shape = setShapeId(piece.shape, id)
-	for i := range piece.shape {
-		for j := range piece.shape[i] {
-			if piece.shape[i][j] > 0 {
-				piece.shape[i][j] = id
-			}
-		}
-	}
 	return piece
 }
 
