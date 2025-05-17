@@ -412,7 +412,7 @@ func (t *Tetris) UpdateGrid() {
 func (t *Tetris) printGrid() {
 	clearStdout()
 	fmt.Println("GO TETRIS")
-	hr := "*"
+	hr := "***"
 	for i := 0; i < (t.width * 2); i++ {
 		hr = hr + "*"
 	}
@@ -437,7 +437,12 @@ func (t *Tetris) printGrid() {
 			}
 			charRow = append(charRow, char)
 		}
-		fmt.Println(charRow)
+		fmt.Printf("[ ")
+		for _, char := range charRow {
+			fmt.Printf(char)
+			fmt.Printf(" ")
+		}
+		fmt.Printf("]\n")
 	}
 	fmt.Println(hr)
 	fmt.Println(fmt.Sprintf("Score: %d", t.activeScore))
