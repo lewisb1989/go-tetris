@@ -411,10 +411,10 @@ func (t *Tetris) UpdateGrid() {
 
 func (t *Tetris) printGrid() {
 	clearStdout()
-	fmt.Println("GO TETRIS")
-	hr := "***"
+	fmt.Printf("   ╔╦╗╔═╗╔╦╗╦═╗╦╔═╗\n    ║ ║╣  ║ ╠╦╝║╚═╗\n    ╩ ╚═╝ ╩ ╩╚═╩╚═╝\n")
+	hr := " ―"
 	for i := 0; i < (t.width * 2); i++ {
-		hr = hr + "*"
+		hr = hr + "―"
 	}
 	fmt.Println(hr)
 	layout := make([][]int, 0)
@@ -427,7 +427,7 @@ func (t *Tetris) printGrid() {
 	grid := NewGrid(layout)
 	t.addPieceToGrid(grid, t.activePiece)
 	for _, row := range layout {
-		fmt.Printf("[ ")
+		fmt.Printf("| ")
 		for _, cell := range row {
 			if cell > 0 {
 				style := lipgloss.NewStyle().Foreground(lipgloss.Color(t.colors[cell])).Bold(true)
@@ -437,12 +437,12 @@ func (t *Tetris) printGrid() {
 			}
 			fmt.Printf(" ")
 		}
-		fmt.Printf("]\n")
+		fmt.Printf("|\n")
 	}
 	fmt.Println(hr)
-	fmt.Println(fmt.Sprintf("Score: %d", t.activeScore))
-	fmt.Println("-")
-	fmt.Println("Press Esc to exit")
+	fmt.Println(fmt.Sprintf(" Score: %d", t.activeScore))
+	fmt.Println(" --")
+	fmt.Println(" Press Esc to exit")
 }
 
 func (t *Tetris) isCollisionDetected(x int, y int, shape [][]int, id int) bool {
