@@ -386,6 +386,8 @@ func (t *Tetris) printGrid() {
 		}
 		fmt.Println(charRow)
 	}
+	fmt.Println("*********************")
+	fmt.Printf("Score: %d\n", t.activeScore)
 }
 
 func (t *Tetris) collisionDetection(x int, y int, width int, height int) bool {
