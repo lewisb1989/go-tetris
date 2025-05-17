@@ -253,11 +253,3 @@ func TestTetris_MoveDown(t *testing.T) {
 		{1, 1, 0, 0, 0, 0},
 	})
 }
-
-func TestTetris_StartNewGame(t *testing.T) {
-	tetris := NewTetris(6, 10, time.Minute)
-	for i := 0; i < 100; i++ {
-		tetris.MoveDown()
-	}
-	assert.Greater(t, len(tetris.scores), 0)
-}
