@@ -270,12 +270,20 @@ func NewTetris(
 			tetris.MoveDown()
 		}
 	}()
-	//go func() {
-	//	for range time.NewTicker(time.Millisecond * 50).C {
-	//		tetris.printGrid()
-	//	}
-	//}()
 	return tetris
+}
+
+func (t *Tetris) gameOver() {
+	clearStdout()
+	fmt.Println("GAME OVER! Score =", t.activeScore)
+	fmt.Println()
+	time.Sleep(time.Second * 3)
+	fmt.Printf("New game in... ")
+	for i := 0; i < 3; i++ {
+		fmt.Printf("%d... ", 3-i)
+		time.Sleep(time.Second * 2)
+	}
+	StartNewGame(t)
 }
 
 func (t *Tetris) newActivePiece() {
@@ -287,16 +295,7 @@ func (t *Tetris) newActivePiece() {
 	t.activePiece = NewPiece(id, index, rotation, shape)
 	t.activePiece.x = x
 	if t.isCollisionDetected(x, 0, t.activePiece.shape, t.activePiece.id) {
-		clearStdout()
-		fmt.Println("GAME OVER! Score =", t.activeScore)
-		fmt.Println()
-		time.Sleep(time.Second * 3)
-		fmt.Printf("New game in... ")
-		for i := 0; i < 3; i++ {
-			fmt.Printf("%d... ", 3-i)
-			time.Sleep(time.Second * 2)
-		}
-		StartNewGame(t)
+		t.gameOver()
 	}
 }
 
