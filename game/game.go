@@ -167,6 +167,10 @@ func setShapeId(shape [][]int, id int) [][]int {
 	return shape
 }
 
+func clearStdout() {
+	fmt.Print("\033[H\033[2J")
+}
+
 type Grid struct {
 	layout [][]int
 }
@@ -283,6 +287,15 @@ func (t *Tetris) newActivePiece() {
 	t.activePiece = NewPiece(id, index, rotation, shape)
 	t.activePiece.x = x
 	if t.isCollisionDetected(x, 0, t.activePiece.shape, t.activePiece.id) {
+		clearStdout()
+		fmt.Println("GAME OVER! Score =", t.activeScore)
+		fmt.Println()
+		time.Sleep(time.Second * 3)
+		fmt.Printf("New game in... ")
+		for i := 0; i < 3; i++ {
+			fmt.Printf("%d... ", 3-i)
+			time.Sleep(time.Second * 2)
+		}
 		StartNewGame(t)
 	}
 }
@@ -399,7 +412,7 @@ func (t *Tetris) UpdateGrid() {
 }
 
 func (t *Tetris) printGrid() {
-	fmt.Print("\033[H\033[2J")
+	clearStdout()
 	hr := "*"
 	for i := 0; i < (t.width * 2); i++ {
 		hr = hr + "*"
