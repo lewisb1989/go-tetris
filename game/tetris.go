@@ -276,11 +276,11 @@ func (t *Tetris) gameOver() {
 	clearStdout()
 	fmt.Println("GAME OVER! Score =", t.activeScore)
 	fmt.Println()
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 2)
 	fmt.Printf("New game in... ")
 	for i := 0; i < 3; i++ {
 		fmt.Printf("%d... ", 3-i)
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 1)
 	}
 	StartNewGame(t)
 }
@@ -411,6 +411,7 @@ func (t *Tetris) UpdateGrid() {
 
 func (t *Tetris) printGrid() {
 	clearStdout()
+	fmt.Println("GO TETRIS")
 	hr := "*"
 	for i := 0; i < (t.width * 2); i++ {
 		hr = hr + "*"
@@ -440,6 +441,8 @@ func (t *Tetris) printGrid() {
 	}
 	fmt.Println(hr)
 	fmt.Println(fmt.Sprintf("Score: %d", t.activeScore))
+	fmt.Println("-")
+	fmt.Println("Press Esc to exit")
 }
 
 func (t *Tetris) isCollisionDetected(x int, y int, shape [][]int, id int) bool {
