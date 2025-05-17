@@ -174,8 +174,8 @@ func NewPiece(id int, index int, rotation int, shape [][]int) *Piece {
 		rotation: rotation,
 		shape:    shape,
 	}
-	for i, _ := range piece.shape {
-		for j, _ := range piece.shape[i] {
+	for i := range piece.shape {
+		for j := range piece.shape[i] {
 			if piece.shape[i][j] > 0 {
 				piece.shape[i][j] = id
 			}
@@ -363,7 +363,6 @@ func (t *Tetris) CollisionDetection(x int, y int, width int, height int) bool {
 	if y+height > len(t.grid.layout) {
 		return true
 	}
-	//subset := t.grid.layout[y+height-1][x : x+width]
 	var subset [][]int
 	for i := y; i < y+height; i++ {
 		subset = append(subset, []int{})
@@ -380,6 +379,5 @@ func (t *Tetris) CollisionDetection(x int, y int, width int, height int) bool {
 			}
 		}
 	}
-
 	return false
 }
