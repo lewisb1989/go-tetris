@@ -41,7 +41,7 @@ func main() {
 		panic(err)
 	}
 	defer term.Close()
-	tetris := game.NewTetris(10, 40, time.Millisecond*666)
+	tetris := game.NewTetris(10, 20, time.Millisecond*333)
 	for {
 		ev := term.PollEvent()
 		if ev.Key == term.KeyEsc {
