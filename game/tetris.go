@@ -91,11 +91,7 @@ func (t *Tetris) Rotate() {
 // grid boundaries or with other pieces that are already in place
 //
 // If a collision is detected then the active piece can be considered to have reached the
-// bottom of the grid, and the grid is updated and any full rows are removed from the grid
-//
-// # After clearing the completed rows, a new active piece is generated at the top of the grid
-//
-// Finally, print the updated grid to stdout
+// bottom of the grid, the grid is updated and any full rows are removed from the grid
 func (t *Tetris) MoveDown() {
 	t.lock.Lock()
 	defer t.lock.Unlock()
