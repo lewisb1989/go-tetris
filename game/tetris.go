@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"github.com/charmbracelet/lipgloss"
 	"math/rand"
 	"sync"
 	"time"
@@ -85,7 +84,7 @@ func (t *Tetris) Rotate() {
 	}
 	t.activePiece.rotation = rotation
 	t.activePiece.shape = newShape
-	t.printGrid()
+	t.grid.Print(t.activePiece, t.colors, t.activeScore)
 }
 
 // MoveDown moves the active piece down, so long as there are no collisions with the
@@ -102,12 +101,14 @@ func (t *Tetris) MoveDown() {
 	defer t.lock.Unlock()
 	if t.isCollisionDetected(t.activePiece.x, t.activePiece.y+1, t.activePiece.shape, t.activePiece.id) {
 		t.updateGrid()
-		t.clearCompletedRows()
+		t.grid.ClearCompletedRows(func(scoreIncrement int) {
+			t.activeScore += scoreIncrement
+		})
 		t.newActivePiece()
 	} else {
 		t.activePiece.y += 1
 	}
-	t.printGrid()
+	t.grid.Print(t.activePiece, t.colors, t.activeScore)
 }
 
 // MoveLeft moves the active piece to the left, so long as there are no collisions with the
@@ -124,7 +125,7 @@ func (t *Tetris) MoveLeft() {
 		return
 	}
 	t.activePiece.x -= 1
-	t.printGrid()
+	t.grid.Print(t.activePiece, t.colors, t.activeScore)
 }
 
 // MoveRight moves the active piece to the right, so long as there are no collisions with the
@@ -141,7 +142,7 @@ func (t *Tetris) MoveRight() {
 		return
 	}
 	t.activePiece.x += 1
-	t.printGrid()
+	t.grid.Print(t.activePiece, t.colors, t.activeScore)
 }
 
 // gameOver clears stdout and prints the game over message
@@ -177,92 +178,11 @@ func (t *Tetris) newActivePiece() {
 	}
 }
 
-// clearCompletedRows removes any rows in the grid that have pieces in all x co-ordinates, updates
-// the active score for this game, and then adds new empty rows to the top of the grid to replace
-// the completed rows that were removed
-func (t *Tetris) clearCompletedRows() {
-	var newLayout [][]int
-	for _, row := range t.grid.layout {
-		zeroes := 0
-		for _, cell := range row {
-			if cell == 0 {
-				zeroes++
-			}
-		}
-		if zeroes > 0 {
-			newLayout = append(newLayout, row)
-		}
-	}
-	newRows := t.height - len(newLayout)
-	t.activeScore += newRows
-	for i := 0; i < newRows; i++ {
-		var row []int
-		for j := 0; j < t.width; j++ {
-			row = append(row, 0)
-		}
-		newLayout = append([][]int{row}, newLayout...)
-	}
-	t.grid.layout = newLayout
-}
-
-// addPieceToGrid adds a piece to the grid
-func (t *Tetris) addPieceToGrid(grid *Grid, piece *Piece) {
-	row := 0
-	for i := piece.y; i < piece.y+piece.Height(); i++ {
-		col := 0
-		for j := piece.x; j < piece.x+piece.Width(); j++ {
-			if piece.shape[row][col] > 0 {
-				grid.layout[i][j] = piece.shape[row][col]
-			}
-			col++
-		}
-		row++
-	}
-}
-
 // UpdateGrid adds the active piece to the grid and then prints the updated grid to stdout
 func (t *Tetris) updateGrid() {
-	t.addPieceToGrid(t.grid, t.activePiece)
-	t.printGrid()
+	t.grid.AddPiece(t.activePiece)
+	t.grid.Print(t.activePiece, t.colors, t.activeScore)
 	t.archive = append(t.archive, t.activePiece)
-}
-
-// printGrid makes a copy of the grid layout, adds the active piece to the grid, and then
-// prints this grid to stdout
-func (t *Tetris) printGrid() {
-	clearStdout()
-	fmt.Printf("   ╔╦╗╔═╗╔╦╗╦═╗╦╔═╗\n    ║ ║╣  ║ ╠╦╝║╚═╗\n    ╩ ╚═╝ ╩ ╩╚═╩╚═╝\n")
-	hr := " ―"
-	for i := 0; i < (t.width * 2); i++ {
-		hr = hr + "―"
-	}
-	fmt.Println(hr)
-	layout := make([][]int, 0)
-	for i, row := range t.grid.layout {
-		layout = append(layout, []int{})
-		for j := range row {
-			layout[i] = append(layout[i], t.grid.layout[i][j])
-		}
-	}
-	grid := NewGrid(layout)
-	t.addPieceToGrid(grid, t.activePiece)
-	for _, row := range grid.layout {
-		fmt.Printf("| ")
-		for _, cell := range row {
-			if cell > 0 {
-				style := lipgloss.NewStyle().Foreground(lipgloss.Color(t.colors[cell])).Bold(true)
-				fmt.Printf(style.Render("■"))
-			} else {
-				fmt.Printf(" ")
-			}
-			fmt.Printf(" ")
-		}
-		fmt.Printf("|\n")
-	}
-	fmt.Println(hr)
-	fmt.Println(fmt.Sprintf(" Score: %d", t.activeScore))
-	fmt.Println(" --")
-	fmt.Println(" Press Esc to exit")
 }
 
 // isCollisionDetected checks if a shape at the given co-ordinates would collide with the boundaries

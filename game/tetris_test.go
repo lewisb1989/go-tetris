@@ -45,7 +45,6 @@ func TestTetris_RotateWithoutShift(t *testing.T) {
 		{0, 0, 0, 1, 1, 0},
 		{0, 0, 0, 1, 1, 0},
 	}
-	tetris.printGrid()
 	tetris.Rotate()
 	assert.Equal(t, tetris.activePiece.shape, [][]int{
 		{6},
@@ -80,7 +79,6 @@ func TestTetris_RotateWithShift(t *testing.T) {
 		{1, 3, 0, 0, 0, 0},
 		{1, 3, 0, 0, 0, 0},
 	}
-	tetris.printGrid()
 	tetris.Rotate()
 	assert.Equal(t, tetris.activePiece.shape, [][]int{
 		{6, 6, 6, 6},
@@ -113,7 +111,9 @@ func TestTetris_ClearCompletedRows(t *testing.T) {
 		{6, 6, 4, 4, 4, 4},
 		{6, 6, 5, 5, 5, 5},
 	}
-	tetris.clearCompletedRows()
+	tetris.grid.ClearCompletedRows(func(i int) {
+
+	})
 	assert.Equal(t, tetris.grid.layout, [][]int{
 		{0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, 0, 0},
@@ -134,7 +134,7 @@ func TestTetris_AddPieceToGrid(t *testing.T) {
 	piece := NewPiece(1, 1, 1, shape)
 	piece.x = 0
 	piece.y = 0
-	tetris.addPieceToGrid(tetris.grid, piece)
+	tetris.grid.AddPiece(piece)
 	assert.Equal(t, tetris.grid.layout, [][]int{
 		{1, 1, 0, 0, 0, 0},
 		{1, 1, 0, 0, 0, 0},
@@ -194,7 +194,7 @@ func TestTetris_MoveRight_MoveLeft(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		tetris.MoveRight()
 	}
-	tetris.addPieceToGrid(tetris.grid, tetris.activePiece)
+	tetris.grid.AddPiece(tetris.activePiece)
 	assert.Equal(t, tetris.grid.layout, [][]int{
 		{0, 0, 0, 0, 1, 1},
 		{0, 0, 0, 0, 1, 1},
@@ -207,7 +207,7 @@ func TestTetris_MoveRight_MoveLeft(t *testing.T) {
 		{0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, 0, 0},
 	})
-	StartNewGame(tetris)
+	startNewGame(tetris)
 	tetris.activePiece = NewPiece(1, 0, 0, tetris.shapes[1].rotations[1])
 	for i := 0; i < 10; i++ {
 		tetris.MoveRight()
@@ -215,7 +215,7 @@ func TestTetris_MoveRight_MoveLeft(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		tetris.MoveLeft()
 	}
-	tetris.addPieceToGrid(tetris.grid, tetris.activePiece)
+	tetris.grid.AddPiece(tetris.activePiece)
 	assert.Equal(t, tetris.grid.layout, [][]int{
 		{1, 1, 0, 0, 0, 0},
 		{1, 1, 0, 0, 0, 0},
