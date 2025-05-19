@@ -8,8 +8,23 @@ import (
 	"time"
 )
 
-var Shapes = [][][][]int{
-	{
+// Shape encapsulates the color and rotations for a given shape
+type Shape struct {
+	rotations [][][]int
+	color     string
+}
+
+// NewShape creates a new shape with color and rotations
+func NewShape(color string, rotations [][][]int) *Shape {
+	return &Shape{
+		rotations: rotations,
+		color:     color,
+	}
+}
+
+// Shapes slice of all shapes in each possible rotation
+var Shapes = []*Shape{
+	NewShape("#ffff00", [][][]int{
 		{
 			{0, 1, 0},
 			{1, 1, 1},
@@ -28,8 +43,8 @@ var Shapes = [][][][]int{
 			{1, 1},
 			{0, 1},
 		},
-	},
-	{
+	}),
+	NewShape("#00ffff", [][][]int{
 		{
 			{1, 1},
 			{1, 1},
@@ -46,17 +61,8 @@ var Shapes = [][][][]int{
 			{1, 1},
 			{1, 1},
 		},
-	},
-	{
-		{
-			{0, 1, 1},
-			{1, 1, 0},
-		},
-		{
-			{1, 0},
-			{1, 1},
-			{0, 1},
-		},
+	}),
+	NewShape("#BF40BF", [][][]int{
 		{
 			{0, 1, 1},
 			{1, 1, 0},
@@ -66,8 +72,17 @@ var Shapes = [][][][]int{
 			{1, 1},
 			{0, 1},
 		},
-	},
-	{
+		{
+			{0, 1, 1},
+			{1, 1, 0},
+		},
+		{
+			{1, 0},
+			{1, 1},
+			{0, 1},
+		},
+	}),
+	NewShape("#00ff00", [][][]int{
 		{
 			{1, 1, 0},
 			{0, 1, 1},
@@ -86,8 +101,8 @@ var Shapes = [][][][]int{
 			{1, 1},
 			{1, 0},
 		},
-	},
-	{
+	}),
+	NewShape("#ff0000", [][][]int{
 		{
 			{1, 1, 1, 1},
 		},
@@ -106,8 +121,8 @@ var Shapes = [][][][]int{
 			{1},
 			{1},
 		},
-	},
-	{
+	}),
+	NewShape("#0096FF", [][][]int{
 		{
 			{1, 0, 0},
 			{1, 1, 1},
@@ -126,8 +141,8 @@ var Shapes = [][][][]int{
 			{0, 1},
 			{1, 1},
 		},
-	},
-	{
+	}),
+	NewShape("#ff7ff0", [][][]int{
 		{
 			{0, 0, 1},
 			{1, 1, 1},
@@ -146,19 +161,13 @@ var Shapes = [][][][]int{
 			{0, 1},
 			{0, 1},
 		},
-	},
+	}),
 }
 
-var Colors = map[int]string{
-	0: "#ffff00",
-	1: "#00ffff",
-	2: "#BF40BF",
-	3: "#00ff00",
-	4: "#ff0000",
-	5: "#0096FF",
-	6: "#ff7ff0",
-}
-
+// setShapeId every time a new piece is created an auto-incrementing ID is assigned to that piece, so that
+// collisions can be detected after adding the piece to the grid
+//
+// This function assigns the specified ID to the shape matrix by iterating over the rows and columns
 func setShapeId(shape [][]int, id int) [][]int {
 	for i := range shape {
 		for j := range shape[i] {
@@ -170,20 +179,24 @@ func setShapeId(shape [][]int, id int) [][]int {
 	return shape
 }
 
+// clearStdout clear the content displayed in stdout
 func clearStdout() {
 	fmt.Print("\033[H\033[2J")
 }
 
+// Grid encapsulates the layout of the current grid
 type Grid struct {
 	layout [][]int
 }
 
+// NewGrid create a new grid with the specified layout
 func NewGrid(layout [][]int) *Grid {
 	return &Grid{
 		layout: layout,
 	}
 }
 
+// Piece encapsulates the id, x/y co-ordinates, shape and rotation of a given piece
 type Piece struct {
 	id       int
 	x        int
@@ -193,6 +206,7 @@ type Piece struct {
 	shape    [][]int
 }
 
+// NewPiece creates a new piece with specified id, index, rotation and shape
 func NewPiece(id int, index int, rotation int, shape [][]int) *Piece {
 	piece := &Piece{
 		id:       id,
@@ -206,10 +220,12 @@ func NewPiece(id int, index int, rotation int, shape [][]int) *Piece {
 	return piece
 }
 
+// Height return the height of this piece
 func (p *Piece) Height() int {
 	return len(p.shape)
 }
 
+// Width return the width of this piece
 func (p *Piece) Width() int {
 	return len(p.shape[0])
 }
@@ -223,10 +239,12 @@ type Tetris struct {
 	activePiece *Piece
 	archive     []*Piece
 	grid        *Grid
-	shapes      [][][][]int
+	shapes      []*Shape
 	lock        sync.RWMutex
 }
 
+// StartNewGame starts a new game by initializing an empty grid, resetting the active score, and
+// creating a new active piece
 func StartNewGame(tetris *Tetris) {
 	var layout [][]int
 	for i := 0; i < tetris.height; i++ {
@@ -243,6 +261,7 @@ func StartNewGame(tetris *Tetris) {
 	tetris.newActivePiece()
 }
 
+// NewTetris creates a new instance of the Tetris game with specified grid size and game speed
 func NewTetris(
 	width int,
 	height int,
@@ -293,9 +312,9 @@ func (t *Tetris) gameOver() {
 func (t *Tetris) newActivePiece() {
 	id := len(t.archive) + 1
 	index := rand.Intn(len(t.shapes) - 1)
-	t.colors[id] = Colors[index]
+	t.colors[id] = t.shapes[index].color
 	rotation := rand.Intn(3)
-	shape := t.shapes[index][rotation]
+	shape := t.shapes[index].rotations[rotation]
 	x := rand.Intn(len(t.grid.layout[0]) - len(shape[0]) - 1)
 	t.activePiece = NewPiece(id, index, rotation, shape)
 	t.activePiece.x = x
@@ -350,7 +369,7 @@ func (t *Tetris) Rotate() {
 	if rotation > 3 {
 		rotation = 0
 	}
-	newShape := t.shapes[t.activePiece.index][rotation]
+	newShape := t.shapes[t.activePiece.index].rotations[rotation]
 	newShape = setShapeId(newShape, t.activePiece.id)
 	if t.isCollisionDetected(t.activePiece.x, t.activePiece.y, newShape, t.activePiece.id) {
 		if t.activePiece.Height() > t.activePiece.Width() {
