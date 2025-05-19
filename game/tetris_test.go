@@ -160,9 +160,9 @@ func TestTetris_IsCollisionDetected(t *testing.T) {
 	piece.x = 0
 	piece.y = 0
 	tetris.activePiece = piece
-	result := tetris.isCollisionDetected(0, 9, tetris.activePiece.shape, tetris.activePiece.id)
+	result := tetris.isCollisionDetected(0, 9, tetris.activePiece)
 	assert.True(t, result)
-	result = tetris.isCollisionDetected(0, 7, tetris.activePiece.shape, tetris.activePiece.id)
+	result = tetris.isCollisionDetected(0, 7, tetris.activePiece)
 	assert.False(t, result)
 	tetris.grid.layout = [][]int{
 		{0, 0, 0, 0, 0, 0},
@@ -176,11 +176,11 @@ func TestTetris_IsCollisionDetected(t *testing.T) {
 		{1, 1, 0, 0, 0, 0},
 		{1, 1, 0, 0, 0, 0},
 	}
-	result = tetris.isCollisionDetected(1, 5, tetris.activePiece.shape, tetris.activePiece.id)
+	result = tetris.isCollisionDetected(1, 5, tetris.activePiece)
 	assert.True(t, result)
-	result = tetris.isCollisionDetected(1, 4, tetris.activePiece.shape, tetris.activePiece.id)
+	result = tetris.isCollisionDetected(1, 4, tetris.activePiece)
 	assert.False(t, result)
-	result = tetris.isCollisionDetected(2, 5, tetris.activePiece.shape, tetris.activePiece.id)
+	result = tetris.isCollisionDetected(2, 5, tetris.activePiece)
 	assert.False(t, result)
 }
 

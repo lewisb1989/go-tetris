@@ -70,10 +70,11 @@ func (t *Tetris) Rotate() {
 	}
 	newShape := t.shapes[t.activePiece.index].rotations[rotation]
 	newShape = setShapeId(newShape, t.activePiece.id)
-	if t.isCollisionDetected(t.activePiece.x, t.activePiece.y, newShape, t.activePiece.id) {
+	newPiece := NewPiece(t.activePiece.id, t.activePiece.index, rotation, newShape)
+	if t.isCollisionDetected(t.activePiece.x, t.activePiece.y, newPiece) {
 		if t.activePiece.Height() > t.activePiece.Width() {
 			shift := t.activePiece.Height() - t.activePiece.Width()
-			if t.isCollisionDetected(t.activePiece.x-shift, t.activePiece.y, newShape, t.activePiece.id) {
+			if t.isCollisionDetected(t.activePiece.x-shift, t.activePiece.y, newPiece) {
 				return
 			} else {
 				t.activePiece.x -= shift
@@ -95,7 +96,7 @@ func (t *Tetris) Rotate() {
 func (t *Tetris) MoveDown() {
 	t.lock.Lock()
 	defer t.lock.Unlock()
-	if t.isCollisionDetected(t.activePiece.x, t.activePiece.y+1, t.activePiece.shape, t.activePiece.id) {
+	if t.isCollisionDetected(t.activePiece.x, t.activePiece.y+1, t.activePiece) {
 		t.updateGrid()
 		t.grid.ClearCompletedRows(func(scoreIncrement int) {
 			t.activeScore += scoreIncrement
@@ -117,7 +118,7 @@ func (t *Tetris) MoveLeft() {
 	if t.activePiece.x-1 < 0 {
 		return
 	}
-	if t.isCollisionDetected(t.activePiece.x-1, t.activePiece.y, t.activePiece.shape, t.activePiece.id) {
+	if t.isCollisionDetected(t.activePiece.x-1, t.activePiece.y, t.activePiece) {
 		return
 	}
 	t.activePiece.x -= 1
@@ -134,7 +135,7 @@ func (t *Tetris) MoveRight() {
 	if t.activePiece.x+1+t.activePiece.Width() > len(t.grid.layout[0]) {
 		return
 	}
-	if t.isCollisionDetected(t.activePiece.x+1, t.activePiece.y, t.activePiece.shape, t.activePiece.id) {
+	if t.isCollisionDetected(t.activePiece.x+1, t.activePiece.y, t.activePiece) {
 		return
 	}
 	t.activePiece.x += 1
@@ -169,7 +170,7 @@ func (t *Tetris) newActivePiece() {
 	x := rand.Intn(len(t.grid.layout[0]) - len(shape[0]) - 1)
 	t.activePiece = NewPiece(id, index, rotation, shape)
 	t.activePiece.x = x
-	if t.isCollisionDetected(x, 0, t.activePiece.shape, t.activePiece.id) {
+	if t.isCollisionDetected(x, 0, t.activePiece) {
 		t.gameOver()
 	}
 }
@@ -183,28 +184,28 @@ func (t *Tetris) updateGrid() {
 
 // isCollisionDetected checks if a shape at the given co-ordinates would collide with the boundaries
 // of the grid, or if it collides with another piece that has already been added to the grid
-func (t *Tetris) isCollisionDetected(x int, y int, shape [][]int, id int) bool {
+func (t *Tetris) isCollisionDetected(x int, y int, piece *Piece) bool {
 	if x < 0 {
 		return true
 	}
-	if x+len(shape[0]) > len(t.grid.layout[0]) {
+	if x+piece.Width() > len(t.grid.layout[0]) {
 		return true
 	}
-	if y+len(shape) > len(t.grid.layout) {
+	if y+piece.Height() > len(t.grid.layout) {
 		return true
 	}
 	var subset [][]int
-	for i := y; i < y+len(shape); i++ {
+	for i := y; i < y+piece.Height(); i++ {
 		subset = append(subset, []int{})
-		for j := x; j < x+len(shape[0]); j++ {
+		for j := x; j < x+piece.Width(); j++ {
 			subset[i-y] = append(subset[i-y], t.grid.layout[i][j])
 		}
 	}
-	for j := range shape {
-		activeRow := shape[j]
+	for j := range piece.shape {
+		activeRow := piece.shape[j]
 		subsetRow := subset[j]
 		for i := range subsetRow {
-			if subsetRow[i]+activeRow[i] > id {
+			if subsetRow[i]+activeRow[i] > piece.id {
 				return true
 			}
 		}
