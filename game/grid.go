@@ -17,6 +17,16 @@ func NewGrid(layout [][]int) *Grid {
 	}
 }
 
+// Height returns the height of the grid
+func (g *Grid) Height() int {
+	return len(g.layout)
+}
+
+// Width returns the width of the grid
+func (g *Grid) Width() int {
+	return len(g.layout[0])
+}
+
 // ClearCompletedRows removes any rows in the grid that have pieces in all x co-ordinates, updates
 // the active score for this game, and then adds new empty rows to the top of the grid to replace
 // the completed rows that were removed

@@ -188,10 +188,10 @@ func (t *Tetris) isCollisionDetected(x int, y int, piece *Piece) bool {
 	if x < 0 {
 		return true
 	}
-	if x+piece.Width() > len(t.grid.layout[0]) {
+	if x+piece.Width() > t.grid.Width() {
 		return true
 	}
-	if y+piece.Height() > len(t.grid.layout) {
+	if y+piece.Height() > t.grid.Height() {
 		return true
 	}
 	var subset [][]int
