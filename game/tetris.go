@@ -271,6 +271,9 @@ func NewTetris(
 	return tetris
 }
 
+// gameOver clears stdout and prints the game over message
+//
+// After a short delay, we start a new game
 func (t *Tetris) gameOver() {
 	clearStdout()
 	fmt.Println("GAME OVER! Score =", t.activeScore)
@@ -284,6 +287,9 @@ func (t *Tetris) gameOver() {
 	StartNewGame(t)
 }
 
+// newActivePiece randomly select a new active piece at a random x co-ordinate and with a random rotation
+//
+// If the creation of this piece results in a collision then the grid is full and a new game is started
 func (t *Tetris) newActivePiece() {
 	id := len(t.archive) + 1
 	index := rand.Intn(len(t.shapes) - 1)
@@ -298,6 +304,9 @@ func (t *Tetris) newActivePiece() {
 	}
 }
 
+// clearCompletedRows removes any rows in the grid that have pieces in all x co-ordinates, updates
+// the active score for this game, and then adds new empty rows to the top of the grid to replace
+// the completed rows that were removed
 func (t *Tetris) clearCompletedRows() {
 	var newLayout [][]int
 	for _, row := range t.grid.layout {
@@ -323,6 +332,17 @@ func (t *Tetris) clearCompletedRows() {
 	t.grid.layout = newLayout
 }
 
+// Rotate rotates the active piece by 90 degrees as long as rotating the piece would not result in a collision
+// with the grid boundaries or with another piece that is currently in place
+//
+// If the width of the piece increases after rotation, then it may be possible to rotate the piece after shifting
+// to the left
+//
+// If a collision is detected for the current x and y co-ordinates, then we try to shift the piece to the left
+// and check if rotating at the new co-ordinates is free from collisions
+//
+// When it is impossible to rotate the piece without causing a collision, then this method returns so that the
+// piece is not rotated
 func (t *Tetris) Rotate() {
 	t.lock.Lock()
 	defer t.lock.Unlock()
@@ -346,10 +366,18 @@ func (t *Tetris) Rotate() {
 	}
 	t.activePiece.rotation = rotation
 	t.activePiece.shape = newShape
-	t.activePiece.shape = setShapeId(t.activePiece.shape, t.activePiece.id)
 	t.printGrid()
 }
 
+// MoveDown moves the active piece down, so long as there are no collisions with the
+// grid boundaries or with other pieces that are already in place
+//
+// If a collision is detected then the active piece can be considered to have reached the
+// bottom of the grid, and the grid is updated and any full rows are removed from the grid
+//
+// # After clearing the completed rows, a new active piece is generated at the top of the grid
+//
+// Finally, print the updated grid to stdout
 func (t *Tetris) MoveDown() {
 	t.lock.Lock()
 	defer t.lock.Unlock()
@@ -363,6 +391,10 @@ func (t *Tetris) MoveDown() {
 	t.printGrid()
 }
 
+// MoveLeft moves the active piece to the left, so long as there are no collisions with the
+// grid boundaries or with other pieces that are already in place
+//
+// Finally, print the updated grid to stdout
 func (t *Tetris) MoveLeft() {
 	t.lock.Lock()
 	defer t.lock.Unlock()
@@ -376,6 +408,10 @@ func (t *Tetris) MoveLeft() {
 	t.printGrid()
 }
 
+// MoveRight moves the active piece to the right, so long as there are no collisions with the
+// grid boundaries or with other pieces that are already in place
+//
+// Finally, print the updated grid to stdout
 func (t *Tetris) MoveRight() {
 	t.lock.Lock()
 	defer t.lock.Unlock()
@@ -389,6 +425,7 @@ func (t *Tetris) MoveRight() {
 	t.printGrid()
 }
 
+// addPieceToGrid adds a piece to the grid
 func (t *Tetris) addPieceToGrid(grid *Grid, piece *Piece) {
 	row := 0
 	for i := piece.y; i < piece.y+piece.Height(); i++ {
@@ -403,12 +440,15 @@ func (t *Tetris) addPieceToGrid(grid *Grid, piece *Piece) {
 	}
 }
 
+// UpdateGrid adds the active piece to the grid and then prints the updated grid to stdout
 func (t *Tetris) UpdateGrid() {
 	t.addPieceToGrid(t.grid, t.activePiece)
 	t.printGrid()
 	t.archive = append(t.archive, t.activePiece)
 }
 
+// printGrid makes a copy of the grid layout, adds the active piece to the grid, and then
+// prints this grid to stdout
 func (t *Tetris) printGrid() {
 	clearStdout()
 	fmt.Printf("   ╔╦╗╔═╗╔╦╗╦═╗╦╔═╗\n    ║ ║╣  ║ ╠╦╝║╚═╗\n    ╩ ╚═╝ ╩ ╩╚═╩╚═╝\n")
@@ -426,7 +466,7 @@ func (t *Tetris) printGrid() {
 	}
 	grid := NewGrid(layout)
 	t.addPieceToGrid(grid, t.activePiece)
-	for _, row := range layout {
+	for _, row := range grid.layout {
 		fmt.Printf("| ")
 		for _, cell := range row {
 			if cell > 0 {
@@ -445,6 +485,8 @@ func (t *Tetris) printGrid() {
 	fmt.Println(" Press Esc to exit")
 }
 
+// isCollisionDetected checks if a shape at the given co-ordinates would collide with the boundaries
+// of the grid, or if it collides with another piece that has already been added to the grid
 func (t *Tetris) isCollisionDetected(x int, y int, shape [][]int, id int) bool {
 	if x < 0 {
 		return true
