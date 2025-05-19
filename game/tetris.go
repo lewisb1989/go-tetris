@@ -8,228 +8,7 @@ import (
 	"time"
 )
 
-// Shape encapsulates the color and rotations for a given shape
-type Shape struct {
-	rotations [][][]int
-	color     string
-}
-
-// NewShape creates a new shape with color and rotations
-func NewShape(color string, rotations [][][]int) *Shape {
-	return &Shape{
-		rotations: rotations,
-		color:     color,
-	}
-}
-
-// Shapes slice of all shapes in each possible rotation
-var Shapes = []*Shape{
-	NewShape("#ffff00", [][][]int{
-		{
-			{0, 1, 0},
-			{1, 1, 1},
-		},
-		{
-			{1, 0},
-			{1, 1},
-			{1, 0},
-		},
-		{
-			{1, 1, 1},
-			{0, 1, 0},
-		},
-		{
-			{0, 1},
-			{1, 1},
-			{0, 1},
-		},
-	}),
-	NewShape("#00ffff", [][][]int{
-		{
-			{1, 1},
-			{1, 1},
-		},
-		{
-			{1, 1},
-			{1, 1},
-		},
-		{
-			{1, 1},
-			{1, 1},
-		},
-		{
-			{1, 1},
-			{1, 1},
-		},
-	}),
-	NewShape("#BF40BF", [][][]int{
-		{
-			{0, 1, 1},
-			{1, 1, 0},
-		},
-		{
-			{1, 0},
-			{1, 1},
-			{0, 1},
-		},
-		{
-			{0, 1, 1},
-			{1, 1, 0},
-		},
-		{
-			{1, 0},
-			{1, 1},
-			{0, 1},
-		},
-	}),
-	NewShape("#00ff00", [][][]int{
-		{
-			{1, 1, 0},
-			{0, 1, 1},
-		},
-		{
-			{0, 1},
-			{1, 1},
-			{1, 0},
-		},
-		{
-			{1, 1, 0},
-			{0, 1, 1},
-		},
-		{
-			{0, 1},
-			{1, 1},
-			{1, 0},
-		},
-	}),
-	NewShape("#ff0000", [][][]int{
-		{
-			{1, 1, 1, 1},
-		},
-		{
-			{1},
-			{1},
-			{1},
-			{1},
-		},
-		{
-			{1, 1, 1, 1},
-		},
-		{
-			{1},
-			{1},
-			{1},
-			{1},
-		},
-	}),
-	NewShape("#0096FF", [][][]int{
-		{
-			{1, 0, 0},
-			{1, 1, 1},
-		},
-		{
-			{1, 1},
-			{1, 0},
-			{1, 0},
-		},
-		{
-			{1, 1, 1},
-			{0, 0, 1},
-		},
-		{
-			{0, 1},
-			{0, 1},
-			{1, 1},
-		},
-	}),
-	NewShape("#ff7ff0", [][][]int{
-		{
-			{0, 0, 1},
-			{1, 1, 1},
-		},
-		{
-			{1, 0},
-			{1, 0},
-			{1, 1},
-		},
-		{
-			{1, 1, 1},
-			{1, 0, 0},
-		},
-		{
-			{1, 1},
-			{0, 1},
-			{0, 1},
-		},
-	}),
-}
-
-// setShapeId every time a new piece is created an auto-incrementing ID is assigned to that piece, so that
-// collisions can be detected after adding the piece to the grid
-//
-// This function assigns the specified ID to the shape matrix by iterating over the rows and columns
-func setShapeId(shape [][]int, id int) [][]int {
-	for i := range shape {
-		for j := range shape[i] {
-			if shape[i][j] > 0 {
-				shape[i][j] = id
-			}
-		}
-	}
-	return shape
-}
-
-// clearStdout clear the content displayed in stdout
-func clearStdout() {
-	fmt.Print("\033[H\033[2J")
-}
-
-// Grid encapsulates the layout of the current grid
-type Grid struct {
-	layout [][]int
-}
-
-// NewGrid create a new grid with the specified layout
-func NewGrid(layout [][]int) *Grid {
-	return &Grid{
-		layout: layout,
-	}
-}
-
-// Piece encapsulates the id, x/y co-ordinates, shape and rotation of a given piece
-type Piece struct {
-	id       int
-	x        int
-	y        int
-	index    int
-	rotation int
-	shape    [][]int
-}
-
-// NewPiece creates a new piece with specified id, index, rotation and shape
-func NewPiece(id int, index int, rotation int, shape [][]int) *Piece {
-	piece := &Piece{
-		id:       id,
-		x:        0,
-		y:        0,
-		index:    index,
-		rotation: rotation,
-		shape:    shape,
-	}
-	piece.shape = setShapeId(piece.shape, id)
-	return piece
-}
-
-// Height return the height of this piece
-func (p *Piece) Height() int {
-	return len(p.shape)
-}
-
-// Width return the width of this piece
-func (p *Piece) Width() int {
-	return len(p.shape[0])
-}
-
+// Tetris encapsulates the state of the game
 type Tetris struct {
 	activeScore int
 	scores      []int
@@ -241,24 +20,6 @@ type Tetris struct {
 	grid        *Grid
 	shapes      []*Shape
 	lock        sync.RWMutex
-}
-
-// StartNewGame starts a new game by initializing an empty grid, resetting the active score, and
-// creating a new active piece
-func StartNewGame(tetris *Tetris) {
-	var layout [][]int
-	for i := 0; i < tetris.height; i++ {
-		layout = append(layout, []int{})
-		for j := 0; j < tetris.width; j++ {
-			layout[i] = append(layout[i], 0)
-		}
-	}
-	tetris.scores = append(tetris.scores, tetris.activeScore)
-	tetris.activeScore = 0
-	tetris.grid = NewGrid(layout)
-	tetris.archive = make([]*Piece, 0)
-	tetris.colors = make(map[int]string)
-	tetris.newActivePiece()
 }
 
 // NewTetris creates a new instance of the Tetris game with specified grid size and game speed
@@ -281,74 +42,13 @@ func NewTetris(
 		scores:  make([]int, 0),
 		colors:  make(map[int]string),
 	}
-	StartNewGame(tetris)
+	startNewGame(tetris)
 	go func() {
 		for range time.NewTicker(gameSpeed).C {
 			tetris.MoveDown()
 		}
 	}()
 	return tetris
-}
-
-// gameOver clears stdout and prints the game over message
-//
-// After a short delay, we start a new game
-func (t *Tetris) gameOver() {
-	clearStdout()
-	fmt.Println("GAME OVER! Score =", t.activeScore)
-	fmt.Println()
-	time.Sleep(time.Second * 2)
-	fmt.Printf("New game in... ")
-	for i := 0; i < 3; i++ {
-		fmt.Printf("%d... ", 3-i)
-		time.Sleep(time.Second * 1)
-	}
-	StartNewGame(t)
-}
-
-// newActivePiece randomly select a new active piece at a random x co-ordinate and with a random rotation
-//
-// If the creation of this piece results in a collision then the grid is full and a new game is started
-func (t *Tetris) newActivePiece() {
-	id := len(t.archive) + 1
-	index := rand.Intn(len(t.shapes) - 1)
-	t.colors[id] = t.shapes[index].color
-	rotation := rand.Intn(3)
-	shape := t.shapes[index].rotations[rotation]
-	x := rand.Intn(len(t.grid.layout[0]) - len(shape[0]) - 1)
-	t.activePiece = NewPiece(id, index, rotation, shape)
-	t.activePiece.x = x
-	if t.isCollisionDetected(x, 0, t.activePiece.shape, t.activePiece.id) {
-		t.gameOver()
-	}
-}
-
-// clearCompletedRows removes any rows in the grid that have pieces in all x co-ordinates, updates
-// the active score for this game, and then adds new empty rows to the top of the grid to replace
-// the completed rows that were removed
-func (t *Tetris) clearCompletedRows() {
-	var newLayout [][]int
-	for _, row := range t.grid.layout {
-		zeroes := 0
-		for _, cell := range row {
-			if cell == 0 {
-				zeroes++
-			}
-		}
-		if zeroes > 0 {
-			newLayout = append(newLayout, row)
-		}
-	}
-	newRows := t.height - len(newLayout)
-	t.activeScore += newRows
-	for i := 0; i < newRows; i++ {
-		var row []int
-		for j := 0; j < t.width; j++ {
-			row = append(row, 0)
-		}
-		newLayout = append([][]int{row}, newLayout...)
-	}
-	t.grid.layout = newLayout
 }
 
 // Rotate rotates the active piece by 90 degrees as long as rotating the piece would not result in a collision
@@ -401,7 +101,7 @@ func (t *Tetris) MoveDown() {
 	t.lock.Lock()
 	defer t.lock.Unlock()
 	if t.isCollisionDetected(t.activePiece.x, t.activePiece.y+1, t.activePiece.shape, t.activePiece.id) {
-		t.UpdateGrid()
+		t.updateGrid()
 		t.clearCompletedRows()
 		t.newActivePiece()
 	} else {
@@ -444,6 +144,67 @@ func (t *Tetris) MoveRight() {
 	t.printGrid()
 }
 
+// gameOver clears stdout and prints the game over message
+//
+// After a short delay, we start a new game
+func (t *Tetris) gameOver() {
+	clearStdout()
+	fmt.Println("GAME OVER! Score =", t.activeScore)
+	fmt.Println()
+	time.Sleep(time.Second * 2)
+	fmt.Printf("New game in... ")
+	for i := 0; i < 3; i++ {
+		fmt.Printf("%d... ", 3-i)
+		time.Sleep(time.Second * 1)
+	}
+	startNewGame(t)
+}
+
+// newActivePiece randomly select a new active piece at a random x co-ordinate and with a random rotation
+//
+// If the creation of this piece results in a collision then the grid is full and a new game is started
+func (t *Tetris) newActivePiece() {
+	id := len(t.archive) + 1
+	index := rand.Intn(len(t.shapes) - 1)
+	t.colors[id] = t.shapes[index].color
+	rotation := rand.Intn(3)
+	shape := t.shapes[index].rotations[rotation]
+	x := rand.Intn(len(t.grid.layout[0]) - len(shape[0]) - 1)
+	t.activePiece = NewPiece(id, index, rotation, shape)
+	t.activePiece.x = x
+	if t.isCollisionDetected(x, 0, t.activePiece.shape, t.activePiece.id) {
+		t.gameOver()
+	}
+}
+
+// clearCompletedRows removes any rows in the grid that have pieces in all x co-ordinates, updates
+// the active score for this game, and then adds new empty rows to the top of the grid to replace
+// the completed rows that were removed
+func (t *Tetris) clearCompletedRows() {
+	var newLayout [][]int
+	for _, row := range t.grid.layout {
+		zeroes := 0
+		for _, cell := range row {
+			if cell == 0 {
+				zeroes++
+			}
+		}
+		if zeroes > 0 {
+			newLayout = append(newLayout, row)
+		}
+	}
+	newRows := t.height - len(newLayout)
+	t.activeScore += newRows
+	for i := 0; i < newRows; i++ {
+		var row []int
+		for j := 0; j < t.width; j++ {
+			row = append(row, 0)
+		}
+		newLayout = append([][]int{row}, newLayout...)
+	}
+	t.grid.layout = newLayout
+}
+
 // addPieceToGrid adds a piece to the grid
 func (t *Tetris) addPieceToGrid(grid *Grid, piece *Piece) {
 	row := 0
@@ -460,7 +221,7 @@ func (t *Tetris) addPieceToGrid(grid *Grid, piece *Piece) {
 }
 
 // UpdateGrid adds the active piece to the grid and then prints the updated grid to stdout
-func (t *Tetris) UpdateGrid() {
+func (t *Tetris) updateGrid() {
 	t.addPieceToGrid(t.grid, t.activePiece)
 	t.printGrid()
 	t.archive = append(t.archive, t.activePiece)
